@@ -94,7 +94,7 @@ By separating the Instructions (stored in SQL) from the Execution (the Agents), 
 - **Role ↔ Skills**: Many-to-many (via Role_Skills)
 - **Skills → Learnings**: Links market demand to personal supply
 
-> **Detailed schemas**: See `.agent/specs/mvp_phase1_job_capture.md` and `.agent/specs/future_phases_roadmap.md`
+> **Detailed schemas**: See `.agent/specs/01-job_capture.md` and `.agent/specs/future_phases_roadmap.md`
 
 ## 6. Development Phases
 
@@ -108,7 +108,7 @@ By separating the Instructions (stored in SQL) from the Execution (the Agents), 
 - SQLite database population
 - Simple web UI for input and viewing
 
-> **Full specification**: See `.agent/specs/mvp_phase1_job_capture.md`
+> **Full specification**: See `.agent/specs/01-job_capture.md`
 
 ### Phase 2: Company Scoring Engine
 - Automated research and scoring of 8 desirability factors
