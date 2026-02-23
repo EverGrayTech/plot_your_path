@@ -1,0 +1,18 @@
+{
+  "template": "https://github.com/EverGrayTech/package_templates.git",
+  "commit": "90137a8b2350a5c1214bd0746e74c748e91d59dc",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Allen Rose",
+      "email": "RoseAllenM@gmail.com",
+      "package_name": "Plot Your Path",
+      "package_slug": "plot_your_path",
+      "package_url": "https://github.com/EverGrayTech/plot_your_path.git",
+      "description": "Turn job goals into a clear direction by mapping skill gaps, readiness, and next steps.",
+      "_template": "https://github.com/EverGrayTech/package_templates.git",
+      "_commit": "90137a8b2350a5c1214bd0746e74c748e91d59dc"
+    }
+  },
+  "directory": "agentic"
+}
