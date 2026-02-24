@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 
 class CompanyBase(BaseModel):
@@ -21,11 +21,8 @@ class CompanyCreate(CompanyBase):
 class Company(CompanyBase):
     """Complete company schema with database fields."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     slug: str
     created_at: datetime
-
-    class Config:
-        """Pydantic configuration."""
-
-        from_attributes = True
