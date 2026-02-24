@@ -400,21 +400,21 @@ export interface JobScrapeResponse {
 - [x] Commit: `feat(backend): add configuration management`
 
 ### Phase 6: Backend - Web Scraping Service
-- [ ] Create scraper service
-  - [ ] `src/backend/services/__init__.py`
-  - [ ] `src/backend/services/scraper.py`
-- [ ] Implement scraping logic
-  - [ ] URL validation
-  - [ ] BeautifulSoup-based scraping for static sites
-  - [ ] Playwright integration for JavaScript-heavy sites
-  - [ ] Site-specific extractors (LinkedIn, Indeed, Greenhouse, Lever)
-  - [ ] Error handling and retry logic
-  - [ ] Rate limiting
-- [ ] Write unit tests for scraper
-  - [ ] `tests/backend/test_scraper.py`
-  - [ ] Mock HTTP responses for testing
-- [ ] Run tests: `uv run pytest tests/backend/test_scraper.py --cov`
-- [ ] Commit: `feat(backend): add web scraping service`
+- [x] Create scraper service
+  - [x] `src/backend/services/__init__.py`
+  - [x] `src/backend/services/scraper.py`
+- [x] Implement scraping logic
+  - [x] URL validation
+  - [x] BeautifulSoup-based scraping for static sites
+  - [x] Playwright integration for JavaScript-heavy sites
+  - [x] Site-specific extractors (LinkedIn, Indeed, Greenhouse, Lever)
+  - [x] Error handling and retry logic
+  - [x] Rate limiting
+- [x] Write unit tests for scraper
+  - [x] `tests/backend/test_scraper.py`
+  - [x] Mock HTTP responses for testing
+- [x] Run tests: `uv run pytest tests/backend/test_scraper.py --cov`
+- [x] Commit: `feat(backend): add web scraping service`
 
 ### Phase 7: Backend - LLM Service
 - [ ] Create LLM service
