@@ -332,61 +332,61 @@ export interface JobScrapeResponse {
 ## 2. Implementation Steps (The Task List)
 
 ### Phase 1: Project Setup & Infrastructure
-- [ ] Run `cruft update` to sync with template
-- [ ] Create feature branch `feature/mvp-phase1-job-capture`
-- [ ] Initialize backend project structure with uv
-  - [ ] Create `pyproject.toml` with dependencies
-  - [ ] Set up `ruff.toml` configuration
-  - [ ] Create `src/backend/` directory structure
-- [ ] Initialize frontend project structure with pnpm
-  - [ ] Create Next.js 15 app with TypeScript
-  - [ ] Set up `biome.json` configuration
-  - [ ] Create `src/frontend/` directory structure
-- [ ] Create configuration files
-  - [ ] `config/llm.json`
-  - [ ] `config/scraping.json`
-  - [ ] `.env.example`
-- [ ] Create data directories
-  - [ ] `data/jobs/raw/`
-  - [ ] `data/jobs/cleaned/`
-- [ ] Commit: `chore: initialize Phase 1 project structure`
+- [x] Run `cruft update` to sync with template (skipped - not installed)
+- [x] Create feature branch `feature/mvp-phase1-job-capture`
+- [x] Initialize backend project structure with uv
+  - [x] Create `pyproject.toml` with dependencies
+  - [x] Set up `ruff.toml` configuration (in pyproject.toml)
+  - [x] Create `src/backend/` directory structure
+- [x] Initialize frontend project structure with pnpm
+  - [x] Create Next.js 15 app with TypeScript
+  - [x] Set up `biome.json` configuration
+  - [x] Create `src/frontend/` directory structure
+- [x] Create configuration files
+  - [x] `config/llm.json`
+  - [x] `config/scraping.json`
+  - [x] `.env.example`
+- [x] Create data directories
+  - [x] `data/jobs/raw/`
+  - [x] `data/jobs/cleaned/`
+- [x] Commit: `chore: initialize Phase 1 project structure`
 
 ### Phase 2: Backend - Database Layer
-- [ ] Create SQLAlchemy database setup
-  - [ ] `src/backend/database.py` - Database engine and session
-  - [ ] `src/backend/models/__init__.py`
-- [ ] Create ORM models
-  - [ ] `src/backend/models/company.py`
-  - [ ] `src/backend/models/role.py`
-  - [ ] `src/backend/models/skill.py`
-  - [ ] `src/backend/models/role_skill.py`
-- [ ] Create database initialization script
-  - [ ] `src/backend/init_db.py` - Creates tables
-- [ ] Test database creation
-  - [ ] Run init script and verify SQLite file created
-  - [ ] Verify all tables exist with correct schema
-- [ ] Commit: `feat(backend): add database models and initialization`
+- [x] Create SQLAlchemy database setup
+  - [x] `src/backend/database.py` - Database engine and session
+  - [x] `src/backend/models/__init__.py`
+- [x] Create ORM models
+  - [x] `src/backend/models/company.py`
+  - [x] `src/backend/models/role.py`
+  - [x] `src/backend/models/skill.py`
+  - [x] `src/backend/models/role_skill.py`
+- [x] Create database initialization script
+  - [x] `src/backend/init_db.py` - Creates tables
+- [x] Test database creation
+  - [x] Run init script and verify SQLite file created
+  - [x] Verify all tables exist with correct schema
+- [x] Commit: `feat(backend): add database models and initialization`
 
 ### Phase 3: Backend - Pydantic Schemas
-- [ ] Create Pydantic schemas
-  - [ ] `src/backend/schemas/__init__.py`
-  - [ ] `src/backend/schemas/company.py`
-  - [ ] `src/backend/schemas/skill.py`
-  - [ ] `src/backend/schemas/job.py`
-- [ ] Write unit tests for schema validation
-  - [ ] `tests/backend/test_schemas.py`
-- [ ] Run tests: `uv run pytest tests/backend/test_schemas.py --cov`
-- [ ] Commit: `feat(backend): add Pydantic schemas for API validation`
+- [x] Create Pydantic schemas
+  - [x] `src/backend/schemas/__init__.py`
+  - [x] `src/backend/schemas/company.py`
+  - [x] `src/backend/schemas/skill.py`
+  - [x] `src/backend/schemas/job.py`
+- [x] Write unit tests for schema validation
+  - [x] `tests/backend/test_schemas.py`
+- [x] Run tests: `uv run pytest tests/backend/test_schemas.py --cov`
+- [x] Commit: `feat(backend): add Pydantic schemas for API validation`
 
 ### Phase 4: Backend - Utility Functions
-- [ ] Create utility modules
-  - [ ] `src/backend/utils/__init__.py`
-  - [ ] `src/backend/utils/slug.py` - Company name to slug conversion
-  - [ ] `src/backend/utils/file_storage.py` - File save/load operations
-- [ ] Write unit tests for utilities
-  - [ ] `tests/backend/test_utils.py`
-- [ ] Run tests: `uv run pytest tests/backend/test_utils.py --cov`
-- [ ] Commit: `feat(backend): add utility functions for slug and file storage`
+- [x] Create utility modules
+  - [x] `src/backend/utils/__init__.py`
+  - [x] `src/backend/utils/slug.py` - Company name to slug conversion
+  - [x] `src/backend/utils/file_storage.py` - File save/load operations
+- [x] Write unit tests for utilities
+  - [x] `tests/backend/test_utils.py`
+- [x] Run tests: `uv run pytest tests/backend/test_utils.py --cov`
+- [x] Commit: `feat(backend): add utility functions for slug and file storage`
 
 ### Phase 5: Backend - Configuration Management
 - [ ] Create configuration module
