@@ -389,15 +389,15 @@ export interface JobScrapeResponse {
 - [x] Commit: `feat(backend): add utility functions for slug and file storage`
 
 ### Phase 5: Backend - Configuration Management
-- [ ] Create configuration module
-  - [ ] `src/backend/config.py` - Load LLM and scraping configs
-- [ ] Implement environment variable loading
-  - [ ] Support for `.env` file
-  - [ ] Validation of required API keys
-- [ ] Write unit tests for config loading
-  - [ ] `tests/backend/test_config.py`
-- [ ] Run tests: `uv run pytest tests/backend/test_config.py --cov`
-- [ ] Commit: `feat(backend): add configuration management`
+- [x] Create configuration module
+  - [x] `src/backend/config.py` - Load LLM and scraping configs
+- [x] Implement environment variable loading
+  - [x] Support for `.env` file
+  - [x] Validation of required API keys
+- [x] Write unit tests for config loading
+  - [x] `tests/backend/test_config.py`
+- [x] Run tests: `uv run pytest tests/backend/test_config.py --cov`
+- [x] Commit: `feat(backend): add configuration management`
 
 ### Phase 6: Backend - Web Scraping Service
 - [ ] Create scraper service
