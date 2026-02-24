@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.sql import func
 
-from src.backend.database import Base
+from backend.database import Base
 
 
 class Role(Base):

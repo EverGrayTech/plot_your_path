@@ -1,7 +1,7 @@
 """Database initialization script."""
 
-from src.backend.database import Base, engine
-from src.backend.models import Company, Role, RoleSkill, Skill
+from backend.database import Base, engine
+from backend.models import Company, Role, RoleSkill, Skill
 
 
 def init_database():
