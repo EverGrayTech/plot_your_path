@@ -3,7 +3,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SkillCategory(str, Enum):
@@ -32,10 +32,7 @@ class SkillCreate(SkillBase):
 class Skill(SkillBase):
     """Complete skill schema with database fields."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime
-
-    class Config:
-        """Pydantic configuration."""
-
-        from_attributes = True

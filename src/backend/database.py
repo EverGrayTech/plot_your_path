@@ -1,8 +1,7 @@
 """Database configuration and session management."""
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Database URL - SQLite file-based database
 DATABASE_URL = "sqlite:///./data/plot_your_path.db"

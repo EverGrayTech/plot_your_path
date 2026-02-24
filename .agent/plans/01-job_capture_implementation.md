@@ -449,30 +449,30 @@ export interface JobScrapeResponse {
 - [x] Commit: `feat(backend): add skill extraction and deduplication service`
 
 ### Phase 9: Backend - API Endpoints
-- [ ] Create FastAPI application
-  - [ ] `src/backend/main.py` - App initialization, CORS, routers
-- [ ] Create jobs router
-  - [ ] `src/backend/routers/__init__.py`
-  - [ ] `src/backend/routers/jobs.py`
-- [ ] Implement API endpoints
-  - [ ] `POST /api/jobs/scrape` - Scrape and store job
-  - [ ] `GET /api/jobs` - List all jobs
-  - [ ] `GET /api/jobs/{id}` - Get job details
-  - [ ] `PATCH /api/jobs/{id}/status` - Update job status
-- [ ] Implement full pipeline in scrape endpoint
-  - [ ] Scrape HTML
-  - [ ] Save raw HTML
-  - [ ] LLM de-noising
-  - [ ] Save cleaned Markdown
-  - [ ] Extract skills
-  - [ ] Populate database
-- [ ] Write integration tests for API
-  - [ ] `tests/backend/test_jobs_api.py`
-  - [ ] Test full scrape pipeline
-  - [ ] Test error handling
-- [ ] Run tests: `uv run pytest tests/backend/ --cov`
-- [ ] Verify 90%+ coverage
-- [ ] Commit: `feat(backend): add jobs API endpoints with full pipeline`
+- [x] Create FastAPI application
+  - [x] `src/backend/main.py` - App initialization, CORS, routers
+- [x] Create jobs router
+  - [x] `src/backend/routers/__init__.py`
+  - [x] `src/backend/routers/jobs.py`
+- [x] Implement API endpoints
+  - [x] `POST /api/jobs/scrape` - Scrape and store job
+  - [x] `GET /api/jobs` - List all jobs
+  - [x] `GET /api/jobs/{id}` - Get job details
+  - [x] `PATCH /api/jobs/{id}/status` - Update job status
+- [x] Implement full pipeline in scrape endpoint
+  - [x] Scrape HTML
+  - [x] Save raw HTML
+  - [x] LLM de-noising
+  - [x] Save cleaned Markdown
+  - [x] Extract skills
+  - [x] Populate database
+- [x] Write integration tests for API
+  - [x] `tests/backend/test_jobs_api.py`
+  - [x] Test full scrape pipeline
+  - [x] Test error handling
+- [x] Run tests: `uv run pytest tests/backend/ --cov`
+- [x] Verify 90%+ coverage (91% achieved, jobs.py at 100%)
+- [x] Commit: `feat(backend): add jobs API endpoints with full pipeline`
 
 ### Phase 10: Frontend - Project Setup
 - [ ] Set up Next.js app structure

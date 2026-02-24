@@ -3,7 +3,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 from backend.schemas.company import Company
 
@@ -52,6 +52,8 @@ class SalaryInfo(BaseModel):
 class JobListItem(BaseModel):
     """Schema for job list item (summary view)."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     company: str
     title: str
@@ -60,14 +62,11 @@ class JobListItem(BaseModel):
     skills_count: int
     status: RoleStatus
 
-    class Config:
-        """Pydantic configuration."""
-
-        from_attributes = True
-
 
 class JobDetail(BaseModel):
     """Schema for detailed job view."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     company: Company
@@ -79,8 +78,3 @@ class JobDetail(BaseModel):
     description_md: str
     created_at: datetime
     status: RoleStatus
-
-    class Config:
-        """Pydantic configuration."""
-
-        from_attributes = True
