@@ -417,36 +417,36 @@ export interface JobScrapeResponse {
 - [x] Commit: `feat(backend): add web scraping service`
 
 ### Phase 7: Backend - LLM Service
-- [ ] Create LLM service
-  - [ ] `src/backend/services/llm_service.py`
-- [ ] Implement multi-provider support
-  - [ ] OpenAI integration
-  - [ ] Anthropic integration
-  - [ ] Ollama integration (local models)
-  - [ ] Provider selection based on config
-- [ ] Create LLM prompts
-  - [ ] De-noising prompt (HTML → Markdown)
-  - [ ] Skill extraction prompt
-- [ ] Implement response parsing
-  - [ ] Extract structured data from LLM responses
-- [ ] Write unit tests for LLM service
-  - [ ] `tests/backend/test_llm_service.py`
-  - [ ] Mock LLM API responses
-- [ ] Run tests: `uv run pytest tests/backend/test_llm_service.py --cov`
-- [ ] Commit: `feat(backend): add LLM service with multi-provider support`
+- [x] Create LLM service
+  - [x] `src/backend/services/llm_service.py`
+- [x] Implement multi-provider support
+  - [x] OpenAI integration
+  - [x] Anthropic integration
+  - [x] Ollama integration (local models)
+  - [x] Provider selection based on config
+- [x] Create LLM prompts
+  - [x] De-noising prompt (HTML → Markdown)
+  - [x] Skill extraction prompt
+- [x] Implement response parsing
+  - [x] Extract structured data from LLM responses
+- [x] Write unit tests for LLM service
+  - [x] `tests/backend/test_llm_service.py`
+  - [x] Mock LLM API responses
+- [x] Run tests: `uv run pytest tests/backend/test_llm_service.py --cov`
+- [x] Commit: `feat(backend): add LLM service with multi-provider support`
 
 ### Phase 8: Backend - Skill Extraction Service
-- [ ] Create skill extractor service
-  - [ ] `src/backend/services/skill_extractor.py`
-- [ ] Implement skill extraction logic
-  - [ ] Parse LLM response for skills
-  - [ ] Categorize skills (required vs. preferred)
-  - [ ] Fuzzy matching for skill deduplication
-  - [ ] Database lookup and insertion
-- [ ] Write unit tests for skill extractor
-  - [ ] `tests/backend/test_skill_extractor.py`
-- [ ] Run tests: `uv run pytest tests/backend/test_skill_extractor.py --cov`
-- [ ] Commit: `feat(backend): add skill extraction and deduplication service`
+- [x] Create skill extractor service
+  - [x] `src/backend/services/skill_extractor.py`
+- [x] Implement skill extraction logic
+  - [x] Parse LLM response for skills
+  - [x] Categorize skills (required vs. preferred)
+  - [x] Fuzzy matching for skill deduplication
+  - [x] Database lookup and insertion
+- [x] Write unit tests for skill extractor
+  - [x] `tests/backend/test_skill_extractor.py`
+- [x] Run tests: `uv run pytest tests/backend/test_skill_extractor.py --cov`
+- [x] Commit: `feat(backend): add skill extraction and deduplication service`
 
 ### Phase 9: Backend - API Endpoints
 - [ ] Create FastAPI application
