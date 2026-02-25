@@ -114,10 +114,21 @@ class TestScrapingConfig:
 class TestSettings:
     """Tests for application settings."""
 
-    def test_settings_defaults(self):
-        """Test settings with default values."""
+    def test_settings_defaults(self, monkeypatch):
+        """Test settings with default values (no env overrides)."""
+        # Clear any env vars that might bleed in from the local .env file
+        monkeypatch.delenv("DATA_ROOT", raising=False)
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+
         settings = Settings()
-        assert settings.database_url == "sqlite:///./data/plot_your_path.db"
+
+        # data_root should be the expanded absolute equivalent of the default "~/Documents/plot_your_path"
+        expected_data_root = str(Path("~/Documents/plot_your_path").expanduser().resolve())
+        assert settings.data_root == expected_data_root
+
+        # database_url should be auto-derived from data_root
+        assert settings.database_url == f"sqlite:///{expected_data_root}/plot_your_path.db"
+
         assert settings.backend_host == "0.0.0.0"
         assert settings.backend_port == 8000
         assert settings.next_public_api_url == "http://localhost:8000"
