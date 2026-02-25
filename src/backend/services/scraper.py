@@ -1,14 +1,27 @@
 """Web scraping service for job postings."""
 
 import asyncio
-import time
 from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
-from playwright.async_api import Page, async_playwright
 
 from backend.config import ScrapingConfig
+
+
+def playwright_available() -> bool:
+    """
+    Check whether the optional Playwright package is importable.
+
+    Returns:
+        True if Playwright is installed, False otherwise.
+    """
+    try:
+        import playwright  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
 
 
 class ScraperError(Exception):
@@ -19,12 +32,22 @@ class ScraperService:
     """
     Service for scraping job posting HTML from various job sites.
 
-    Supports both static (httpx + BeautifulSoup) and JavaScript-heavy
-    (Playwright) scraping strategies.
+    Scraping strategy:
+    - Explicitly unsupported domains (e.g. LinkedIn) raise immediately with
+      a helpful error pointing users to the direct ATS link.
+    - All other URLs are attempted first with httpx (works for most ATS
+      platforms: Greenhouse, Lever, Workday, etc.).
+    - If the returned content is too thin (JavaScript-rendered gating page),
+      the scraper falls back to Playwright if it is installed; otherwise it
+      raises a clear error explaining how to install the optional extra.
     """
 
-    # Sites that require JavaScript rendering
-    JS_REQUIRED_DOMAINS = {"linkedin.com", "www.linkedin.com"}
+    # Sites that are explicitly not supported (require auth / block scrapers)
+    UNSUPPORTED_DOMAINS: frozenset[str] = frozenset({"linkedin.com", "www.linkedin.com"})
+
+    # Sites known to need JavaScript for meaningful content (used as a hint,
+    # not a hard gate — the thin-content fallback handles this automatically)
+    JS_REQUIRED_DOMAINS: frozenset[str] = frozenset({"linkedin.com", "www.linkedin.com"})
 
     def __init__(self, config: ScrapingConfig | None = None) -> None:
         """
@@ -34,6 +57,19 @@ class ScraperService:
             config: Scraping configuration (uses defaults if not provided)
         """
         self.config = config or ScrapingConfig()
+
+    @staticmethod
+    def get_domain(url: str) -> str:
+        """
+        Extract domain from URL.
+
+        Args:
+            url: URL string
+
+        Returns:
+            Domain string (e.g. 'linkedin.com')
+        """
+        return urlparse(url).netloc.lower()
 
     @staticmethod
     def is_valid_url(url: str) -> bool:
@@ -52,31 +88,21 @@ class ScraperService:
         except ValueError:
             return False
 
-    @staticmethod
-    def get_domain(url: str) -> str:
-        """
-        Extract domain from URL.
-
-        Args:
-            url: URL string
-
-        Returns:
-            Domain string (e.g. 'linkedin.com')
-        """
-        return urlparse(url).netloc.lower()
-
     def _needs_javascript(self, url: str) -> bool:
         """
-        Check if URL requires JavaScript rendering.
+        Hint whether a URL typically requires JavaScript rendering.
+
+        Note: this is a domain-level hint only.  The main ``scrape()`` method
+        always attempts httpx first, regardless of this flag, and uses actual
+        content length to decide whether Playwright is needed.
 
         Args:
             url: URL to check
 
         Returns:
-            True if JavaScript is required
+            True if the domain is known to be JS-heavy
         """
-        domain = self.get_domain(url)
-        return domain in self.JS_REQUIRED_DOMAINS
+        return self.get_domain(url) in self.JS_REQUIRED_DOMAINS
 
     async def _scrape_with_httpx(self, url: str) -> str:
         """
@@ -121,6 +147,10 @@ class ScraperService:
         """
         Scrape HTML using Playwright (for JavaScript-heavy sites).
 
+        Playwright is an optional dependency (``uv sync --extra browser``).
+        This method lazy-imports it and raises ``ScraperError`` with install
+        instructions if the package is absent.
+
         Args:
             url: URL to scrape
 
@@ -128,8 +158,17 @@ class ScraperService:
             Raw HTML content
 
         Raises:
-            ScraperError: If scraping fails
+            ScraperError: If Playwright is not installed or scraping fails
         """
+        try:
+            from playwright.async_api import async_playwright
+        except ImportError as e:
+            raise ScraperError(
+                "Playwright is not installed. Run:\n"
+                "  uv sync --extra browser\n"
+                "  uv run playwright install chromium"
+            ) from e
+
         last_error: Exception | None = None
 
         for attempt in range(self.config.retry_attempts):
@@ -166,7 +205,12 @@ class ScraperService:
         """
         Scrape job posting HTML from URL.
 
-        Automatically selects the appropriate scraping strategy based on the URL.
+        Decision flow:
+        1. Validate URL — raise ValueError for malformed input.
+        2. Reject explicitly unsupported domains (LinkedIn) with a clear error.
+        3. Try httpx first — works for Greenhouse, Lever, Workday, and most ATS.
+        4. If content is too thin (JS gating page), fall back to Playwright.
+           If Playwright is not installed, raise ScraperError with install steps.
 
         Args:
             url: Job posting URL to scrape
@@ -176,18 +220,42 @@ class ScraperService:
 
         Raises:
             ValueError: If URL is invalid
-            ScraperError: If scraping fails
+            ScraperError: If the domain is unsupported or scraping fails
         """
         if not self.is_valid_url(url):
             raise ValueError(f"Invalid URL: {url}")
 
-        # Add rate limiting delay
+        domain = self.get_domain(url)
+
+        if domain in self.UNSUPPORTED_DOMAINS:
+            raise ScraperError(
+                f"'{domain}' is not supported: LinkedIn requires authentication and "
+                "actively blocks automated access. Use the direct ATS link "
+                "(Greenhouse, Lever, Workday, etc.) listed in the job posting instead."
+            )
+
         await asyncio.sleep(self.config.rate_limit_delay_seconds)
 
-        if self._needs_javascript(url):
-            return await self._scrape_with_playwright(url)
-        else:
-            return await self._scrape_with_httpx(url)
+        # Always try httpx first — works for most ATS platforms without a browser
+        html = ""
+        try:
+            html = await self._scrape_with_httpx(url)
+            text = self.extract_text_from_html(html)
+            if len(text) >= self.config.min_content_chars:
+                return html
+            # Content below threshold — site is likely gating behind JavaScript
+        except ScraperError:
+            pass  # Fall through to Playwright
+
+        if not playwright_available():
+            raise ScraperError(
+                "Scraped content was too thin (JavaScript rendering likely required) and "
+                "Playwright is not installed. Install it with:\n"
+                "  uv sync --extra browser\n"
+                "  uv run playwright install chromium"
+            )
+
+        return await self._scrape_with_playwright(url)
 
     @staticmethod
     def extract_text_from_html(html: str) -> str:

@@ -1,11 +1,12 @@
 """Tests for the web scraping service."""
 
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from backend.config import ScrapingConfig
-from backend.services.scraper import ScraperError, ScraperService
+from backend.services.scraper import ScraperError, ScraperService, playwright_available
 
 
 @pytest.fixture
@@ -16,6 +17,7 @@ def fast_config():
         retry_attempts=2,
         user_agent="TestBot/1.0",
         rate_limit_delay_seconds=0,
+        min_content_chars=500,
     )
 
 
@@ -24,6 +26,24 @@ def scraper(fast_config):
     """ScraperService with fast config."""
     return ScraperService(config=fast_config)
 
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _rich_html(word_count: int = 200) -> str:
+    """Return HTML whose visible text exceeds the default min_content_chars."""
+    return "<html><body><p>" + ("word " * word_count) + "</p></body></html>"
+
+
+def _thin_html() -> str:
+    """Return HTML whose visible text is well below min_content_chars."""
+    return "<html><body><p>Loading…</p></body></html>"
+
+
+# ---------------------------------------------------------------------------
+# URL validation
+# ---------------------------------------------------------------------------
 
 class TestUrlValidation:
     """Tests for URL validation."""
@@ -53,6 +73,10 @@ class TestUrlValidation:
         assert ScraperService.is_valid_url("ftp://example.com/jobs") is False
 
 
+# ---------------------------------------------------------------------------
+# Domain detection
+# ---------------------------------------------------------------------------
+
 class TestDomainDetection:
     """Tests for domain detection."""
 
@@ -67,7 +91,7 @@ class TestDomainDetection:
         assert domain == "indeed.com"
 
     def test_needs_javascript_linkedin(self, scraper):
-        """Test that LinkedIn requires JavaScript."""
+        """Test that LinkedIn is flagged as JS-heavy by the domain hint."""
         assert scraper._needs_javascript("https://linkedin.com/jobs/123") is True
         assert scraper._needs_javascript("https://www.linkedin.com/jobs/123") is True
 
@@ -84,12 +108,16 @@ class TestDomainDetection:
         assert scraper._needs_javascript("https://indeed.com/viewjob?jk=abc") is False
 
 
+# ---------------------------------------------------------------------------
+# Static scraping (httpx)
+# ---------------------------------------------------------------------------
+
 class TestStaticScraping:
     """Tests for static site scraping with httpx."""
 
     @pytest.mark.asyncio
     async def test_scrape_successful(self, scraper):
-        """Test successful scraping of a static page."""
+        """Test successful scraping of a static page via _scrape_with_httpx."""
         mock_html = "<html><body><h1>Software Engineer</h1></body></html>"
 
         with patch("httpx.AsyncClient") as mock_client_class:
@@ -131,6 +159,148 @@ class TestStaticScraping:
 
             assert mock_client.get.call_count == scraper.config.retry_attempts
 
+
+# ---------------------------------------------------------------------------
+# scrape() routing logic
+# ---------------------------------------------------------------------------
+
+class TestScrapeMethod:
+    """Tests for the main scrape() routing / decision logic."""
+
+    @pytest.mark.asyncio
+    async def test_linkedin_com_raises_unsupported(self, scraper):
+        """linkedin.com URLs raise ScraperError immediately."""
+        with pytest.raises(ScraperError, match="not supported"):
+            await scraper.scrape("https://linkedin.com/jobs/123")
+
+    @pytest.mark.asyncio
+    async def test_www_linkedin_raises_unsupported(self, scraper):
+        """www.linkedin.com URLs raise ScraperError immediately."""
+        with pytest.raises(ScraperError, match="not supported"):
+            await scraper.scrape("https://www.linkedin.com/jobs/view/99999")
+
+    @pytest.mark.asyncio
+    async def test_rich_static_content_skips_playwright(self, scraper):
+        """When httpx returns rich content, playwright_available is never consulted."""
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_response = MagicMock()
+            mock_response.text = _rich_html()
+            mock_response.raise_for_status = MagicMock()
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            pw_check = MagicMock()
+            with patch("backend.services.scraper.playwright_available", pw_check):
+                result = await scraper.scrape("https://boards.greenhouse.io/jobs/123")
+
+        assert result == _rich_html()
+        pw_check.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_thin_content_raises_when_playwright_unavailable(self, scraper):
+        """Thin httpx content + Playwright not installed → ScraperError with install tip."""
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_response = MagicMock()
+            mock_response.text = _thin_html()
+            mock_response.raise_for_status = MagicMock()
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("backend.services.scraper.playwright_available", return_value=False):
+                with pytest.raises(ScraperError, match="Playwright is not installed"):
+                    await scraper.scrape("https://boards.greenhouse.io/jobs/123")
+
+    @pytest.mark.asyncio
+    async def test_thin_content_falls_back_to_playwright(self, scraper):
+        """Thin httpx content + Playwright available → _scrape_with_playwright called."""
+        playwright_html = _rich_html(300)
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_response = MagicMock()
+            mock_response.text = _thin_html()
+            mock_response.raise_for_status = MagicMock()
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("backend.services.scraper.playwright_available", return_value=True):
+                with patch.object(
+                    scraper, "_scrape_with_playwright", new=AsyncMock(return_value=playwright_html)
+                ) as mock_pw:
+                    result = await scraper.scrape("https://some-js-site.com/jobs/123")
+
+        assert result == playwright_html
+        mock_pw.assert_called_once_with("https://some-js-site.com/jobs/123")
+
+    @pytest.mark.asyncio
+    async def test_httpx_error_falls_through_to_playwright(self, scraper):
+        """ScraperError from httpx falls through to Playwright when available."""
+        playwright_html = _rich_html(300)
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            import httpx as _httpx
+
+            mock_client.get = AsyncMock(side_effect=_httpx.RequestError("timeout"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("backend.services.scraper.playwright_available", return_value=True):
+                with patch.object(
+                    scraper, "_scrape_with_playwright", new=AsyncMock(return_value=playwright_html)
+                ) as mock_pw:
+                    result = await scraper.scrape("https://some-js-site.com/jobs/123")
+
+        assert result == playwright_html
+        mock_pw.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_httpx_error_raises_when_playwright_unavailable(self, scraper):
+        """ScraperError from httpx + no Playwright → ScraperError with install tip."""
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            import httpx as _httpx
+
+            mock_client.get = AsyncMock(side_effect=_httpx.RequestError("timeout"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            with patch("backend.services.scraper.playwright_available", return_value=False):
+                with pytest.raises(ScraperError, match="Playwright is not installed"):
+                    await scraper.scrape("https://some-js-site.com/jobs/123")
+
+
+# ---------------------------------------------------------------------------
+# playwright_available() helper
+# ---------------------------------------------------------------------------
+
+class TestPlaywrightAvailability:
+    """Tests for the playwright_available() module-level helper."""
+
+    def test_playwright_not_available_when_missing(self):
+        """Returns False when sys.modules blocks the playwright import."""
+        with patch.dict(sys.modules, {"playwright": None}):
+            assert playwright_available() is False
+
+    def test_playwright_available_returns_bool(self):
+        """Returns a plain bool regardless of installation state."""
+        result = playwright_available()
+        assert isinstance(result, bool)
+
+
+# ---------------------------------------------------------------------------
+# HTML text extraction
+# ---------------------------------------------------------------------------
 
 class TestHtmlExtraction:
     """Tests for HTML text extraction."""
