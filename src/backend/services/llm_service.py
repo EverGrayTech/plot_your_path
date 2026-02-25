@@ -72,7 +72,7 @@ class LLMService:
 
     async def _call_openai(self, prompt: str) -> str:
         """
-        Call OpenAI API.
+        Call OpenAI-compatible API (supports OpenAI and OpenRouter).
 
         Args:
             prompt: The prompt to send
@@ -87,7 +87,7 @@ class LLMService:
             from openai import AsyncOpenAI
 
             api_key = self.config.get_api_key()
-            client = AsyncOpenAI(api_key=api_key)
+            client = AsyncOpenAI(api_key=api_key, base_url=self.config.base_url)
             response = await client.chat.completions.create(
                 model=self.config.model,
                 messages=[{"role": "user", "content": prompt}],
@@ -177,7 +177,7 @@ class LLMService:
         """
         provider = self.config.provider
 
-        if provider == "openai":
+        if provider in ("openai", "openrouter"):
             return await self._call_openai(prompt)
         elif provider == "anthropic":
             return await self._call_anthropic(prompt)

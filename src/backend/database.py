@@ -3,8 +3,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Database URL - SQLite file-based database
-DATABASE_URL = "sqlite:///./data/plot_your_path.db"
+from backend.config import settings
+
+# Database URL — derived from DATA_ROOT / settings.database_url.
+# The model_validator in Settings always populates this field after init.
+assert settings.database_url is not None, "database_url must be set in Settings"
+DATABASE_URL: str = settings.database_url
 
 # Create SQLAlchemy engine
 engine = create_engine(
@@ -23,7 +27,7 @@ Base = declarative_base()
 def get_db():
     """
     Dependency function to get database session.
-    
+
     Yields:
         Session: SQLAlchemy database session
     """
