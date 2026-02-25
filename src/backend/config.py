@@ -59,6 +59,7 @@ class ScrapingConfig(BaseSettings):
     retry_attempts: int = 3
     user_agent: str = "Mozilla/5.0 (compatible; PlotYourPath/1.0)"
     rate_limit_delay_seconds: int = 2
+    min_content_chars: int = 500
 
     @classmethod
     def from_file(cls, filepath: str = "config/scraping.json") -> "ScrapingConfig":
